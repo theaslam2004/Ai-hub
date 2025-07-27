@@ -541,6 +541,18 @@
                 initEventListeners();
                 showView('dashboard');
             }
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    const input = document.getElementById('message-input');
+                    if (document.activeElement === input) {
+                        setTimeout(() => {
+                            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
+                });
+            }
+
             initialize();
         });
     </script>
