@@ -9,6 +9,7 @@
     <title>AI Hub | Responsive & Native-Ready</title>
     
     <style>
+        /* Original UI Root Variables */
         :root {
             --bg-color: #f4f7f9;
             --text-color: #2c3e50;
@@ -29,6 +30,15 @@
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
             --safe-area-left: env(safe-area-inset-left, 0px);
             --safe-area-right: env(safe-area-inset-right, 0px);
+
+            /* NotebookLM specific variables */
+            --panel-bg: #ffffff;
+            --subtle-text: #70757a;
+            --button-bg-light: #f1f3f4;
+            --button-text-light: #202124;
+            --button-hover-light: #e8eaed;
+            --tab-active-bg: #e8f0fe; /* Light blue for active tab */
+            --tab-active-text: #1a73e8; /* Google blue for active tab text */
         }
 
         body.dark-mode {
@@ -42,10 +52,21 @@
             --ai-msg-text: #ecf0f1;
             --input-bg: #34495e;
             --icon-color: #bdc3c7;
+            --panel-bg: #2c3e50;
+            --subtle-text: #bdc3c7;
+            --button-bg-light: #34495e;
+            --button-text-light: #ecf0f1;
+            --button-hover-light: #4a627a;
+            --tab-active-bg: #3a506b;
+            --tab-active-text: #8ab4f8;
         }
 
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s; }
         
+        html, body {
+            height: 100%;
+            overflow: auto;
+        }
         .app-container {
             max-width: 900px; margin: 0 auto;
             /* Apply safe area padding for desktop view */
@@ -54,9 +75,24 @@
             padding-bottom: calc(20px + var(--safe-area-bottom));
             padding-left: calc(20px + var(--safe-area-left));
             padding-right: calc(20px + var(--safe-area-right));
+            min-height: 100vh;
         }
         
-        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 30px; }
+        /* Original Chat View (now for general chat only) */
+        #chat-view {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-container {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; /* Adjusted padding */ background-color: var(--header-bg); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); margin-bottom: 30px; }
         .app-header h1 { font-size: 1.5rem; margin: 0; color: var(--primary-color); }
         .header-controls { display: flex; align-items: center; gap: 15px; }
         
@@ -98,37 +134,71 @@
         .history-item p { margin: 0; font-size: 0.9rem; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .history-item .timestamp { font-size: 0.75rem; opacity: 0.5; margin-top: 5px; }
 
-        #chat-view, #doc-upload-view { display: none; flex-direction: column; background-color: var(--header-bg); }
-        #doc-upload-view .chat-header { border-bottom: 1px solid var(--border-color); }
-        .doc-upload-content { padding: 30px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; cursor: pointer; background-color: var(--primary-color); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1rem; margin-bottom: 15px; transition: background-color 0.2s; }
-        .upload-btn-wrapper:hover { background-color: var(--primary-hover); }
-        #doc-file-input { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-        #file-name-display { font-style: italic; color: var(--ai-msg-text); margin-bottom: 20px; }
-        #start-doc-chat-btn { background-color: var(--ai-msg-bg); color: var(--ai-msg-text); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s, color 0.2s; }
-        #start-doc-chat-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #start-doc-chat-btn:not(:disabled):hover { background-color: var(--ai-msg-text); color: var(--ai-msg-bg); }
-        
-        .chat-header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .chat-header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; padding: 12px 25px; /* Adjusted padding */ }
         .chat-header-left { display: flex; align-items: center; }
         .chat-header h2 { font-size: 1.2rem; margin: 0; }
         .back-to-dashboard { background: transparent; border: none; cursor: pointer; margin-right: 10px; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: background-color 0.2s ease-in-out; }
         .back-to-dashboard:hover { background-color: var(--ai-msg-bg); }
         .back-to-dashboard svg { fill: var(--text-color); width: 24px; height: 24px; }
         .chat-header-controls { display: flex; gap: 10px; }
-        .control-btn { background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: background-color 0.2s, color 0.2s; }
+        .control-btn { 
+            background-color: transparent; 
+            border: 1px solid var(--primary-color); 
+            color: var(--primary-color); 
+            padding: 8px 12px; /* Adjusted vertical padding */ 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            transition: background-color 0.2s, color 0.2s;
+            display: flex; /* Added flex for centering text */
+            align-items: center; /* Centered text vertically */
+            justify-content: center; /* Centered text horizontally */
+        }
         .control-btn:hover { background-color: var(--primary-color); color: #fff; }
         #stop-generating-btn { display: none; background-color: #e74c3c; border-color: #c0392b; color: white; }
         #stop-generating-btn:hover { background-color: #c0392b; }
         .chat-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message-wrapper { display: flex; flex-direction: column; }
         .message { max-width: 85%; padding: 12px 16px; border-radius: 18px; line-height: 1.5; word-wrap: break-word; position: relative; }
-        .message.user { align-self: flex-end; background-color: var(--user-msg-bg); color: #fff; border-bottom-right-radius: 4px; }
-        .message.ai { align-self: flex-start; background-color: var(--ai-msg-bg); color: var(--ai-msg-text); border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
-        .message .copy-btn { position: absolute; bottom: 8px; right: -30px; background: none; border: none; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+        .message.user { 
+            align-self: flex-end; 
+            background-color: var(--user-msg-bg); 
+            color: #fff; 
+            border-bottom-right-radius: 4px; 
+            margin-right: 20px; /* Added right margin for user messages */
+        }
+        .message.ai { 
+            align-self: flex-start; 
+            background-color: var(--ai-msg-bg); 
+            color: var(--ai-msg-text); 
+            border-bottom-left-radius: 4px; 
+            border: 1px solid var(--border-color); 
+            margin-left: 20px; /* Added left margin for AI messages */
+        }
+        .message .copy-btn { 
+            position: absolute; 
+            bottom: 5px; 
+            right: -25px; /* Moved outside the bubble to the right */ 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            opacity: 0; 
+            transition: opacity 0.2s; 
+        }
         .message:hover .copy-btn { opacity: 1; }
         .copy-btn svg { fill: var(--icon-color); width: 16px; height: 16px; }
-        .copy-feedback { position: absolute; bottom: 5px; right: -65px; background-color: #2c3e50; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; opacity: 0; transition: opacity 0.3s; }
+        .copy-feedback { 
+            position: absolute; 
+            bottom: 5px; 
+            right: -60px; /* Adjusted to be to the right of the button */ 
+            background-color: #2c3e50; 
+            color: white; 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-size: 0.8rem; 
+            opacity: 0; 
+            transition: opacity 0.3s; 
+        }
         .message-content > pre { background-color: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
         .typing-indicator { align-self: flex-start; display: flex; align-items: center; gap: 5px; padding: 12px 16px; background-color: var(--ai-msg-bg); border-radius: 18px; }
         .typing-indicator span { width: 8px; height: 8px; background-color: var(--ai-msg-text); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
@@ -136,23 +206,46 @@
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
         
-        .chat-footer { flex-shrink: 0; border-top: 1px solid var(--border-color); }
-        .message-form { display: flex; gap: 10px; align-items: center; }
-        #message-input { flex-grow: 1; border: none; padding: 12px; border-radius: 20px; background-color: var(--input-bg); color: var(--text-color); font-size: 1rem; resize: none; line-height: 1.5; max-height: 100px; }
+        .chat-footer { 
+            flex-shrink: 0; 
+            border-top: 1px solid var(--border-color); 
+            padding: 10px 0; /* Added vertical padding, removed horizontal as form handles it */
+        }
+        .message-form { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            max-width: 500px; /* Adjusted max-width for the form itself to make it shorter */
+            margin: 0 auto; /* Center the form */
+            padding: 0 15px; /* Added horizontal padding inside the form for smaller screens */
+        }
+        #message-input { 
+            flex-grow: 1; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 20px; 
+            background-color: var(--input-bg); 
+            color: var(--text-color); 
+            font-size: 1rem; 
+            resize: none; 
+            line-height: 1.5; 
+            max-height: 50px; 
+            min-height: 44px; 
+        }
         #message-input:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-color); }
         .message-form button { background-color: var(--primary-color); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.2s; flex-shrink: 0; }
         .message-form button:hover { background-color: var(--primary-hover); }
         .message-form button svg { fill: #fff; }
 
-        /* --- RESPONSIVE STYLES --- */
+        /* --- RESPONSIVE STYLES (Original UI) --- */
         @media (min-width: 769px) {
-            #chat-view, #doc-upload-view {
+            #chat-view {
                 height: calc(100vh - 60px); max-height: 800px;
                 border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); overflow: hidden;
             }
         }
 
-        /* --- Mobile and Native App Styles --- */
+        /* --- Mobile and Native App Styles (Original UI) --- */
         @media (max-width: 768px) {
             .app-container { padding: 0; }
             .app-header {
@@ -163,11 +256,11 @@
             }
             .tool-grid, #history-section { padding: 20px; }
             
-            #chat-view, #doc-upload-view {
+            #chat-view {
                 height: 100vh; max-height: 100vh; border-radius: 0;
             }
             .chat-header {
-                padding: 12px 15px;
+                padding: 12px 25px; /* Adjusted padding for mobile */
                 padding-top: calc(12px + var(--safe-area-top));
                 padding-left: calc(15px + var(--safe-area-left));
                 padding-right: calc(15px + var(--safe-area-right));
@@ -179,15 +272,665 @@
                 padding-left: calc(15px + var(--safe-area-left));
                 padding-right: calc(15px + var(--safe-area-right));
             }
-            .message .copy-btn { right: 5px; bottom: -25px; }
+        }
+
+        /* --- NotebookLM Style UI Specific CSS --- */
+        #notebooklm-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Make it fill the viewport */
+            background-color: var(--bg-color);
+            /* border-radius: 12px; Removed for full screen */
+            /* box-shadow: 0 4px 15px var(--shadow-color); Removed for full screen */
+            overflow: hidden;
+        }
+
+        #notebooklm-container .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: none;
+            border-radius: 0;
+            margin-bottom: 0;
+        }
+        #notebooklm-container .app-header .left-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        #notebooklm-container .app-header .left-section .logo {
+            width: 24px;
+            height: 24px;
+            fill: var(--icon-color);
+        }
+        #notebooklm-container .app-header .left-section .notebook-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 0;
+            color: var(--text-color);
+        }
+        #notebooklm-container .app-header .right-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        #notebooklm-container .app-header .right-section .header-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        #notebooklm-container .app-header .right-section .header-icon-btn:hover {
+            background-color: var(--button-bg-light);
+        }
+        #notebooklm-container .app-header .right-section .header-icon-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--icon-color);
+        }
+        #notebooklm-container .app-header .right-section .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #notebooklm-container .back-to-dashboard-notebooklm {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            transition: background-color 0.2s ease-in-out;
+            fill: var(--text-color);
+        }
+        #notebooklm-container .back-to-dashboard-notebooklm:hover {
+            background-color: var(--button-bg-light);
+        }
+        #notebooklm-container .back-to-dashboard-notebooklm svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Panel Tabs for NotebookLM UI */
+        .panel-tabs {
+            display: none; /* Hidden by default on large screens */
+            justify-content: space-around;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+        .panel-tabs .tab-button {
+            flex-grow: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--subtle-text);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        .panel-tabs .tab-button:hover {
+            color: var(--text-color);
+        }
+        .panel-tabs .tab-button.active-tab {
+            color: var(--tab-active-text);
+            border-color: var(--tab-active-text);
+        }
+
+
+        /* Main content area for NotebookLM panels */
+        #notebooklm-container .main-content-notebooklm {
+            flex-grow: 1;
+            display: flex;
+            padding: 16px;
+            gap: 16px;
+            overflow: hidden;
+        }
+
+        /* Panel styles for NotebookLM */
+        #notebooklm-container .panel {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        #notebooklm-container .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        #notebooklm-container .panel-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+            color: var(--subtle-text);
+        }
+        #notebooklm-container .panel-header .panel-icon {
+            fill: var(--icon-color);
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sources Panel (NotebookLM) */
+        #notebooklm-container .sources-panel {
+            flex: 0 0 280px;
+            max-width: 30%;
+        }
+        #notebooklm-container .sources-panel .panel-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        #notebooklm-container .sources-panel .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        #notebooklm-container .sources-panel .button-group .btn {
+            background-color: var(--button-bg-light);
+            color: var(--button-text-light);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        #notebooklm-container .sources-panel .button-group .btn:hover {
+            background-color: var(--button-hover-light);
+        }
+        #notebooklm-container .sources-panel .button-group .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--icon-color);
+        }
+        #notebooklm-container .sources-panel .empty-state {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--subtle-text);
+            font-size: 0.875rem;
+            padding: 20px;
+        }
+        #notebooklm-container .sources-panel .empty-state svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        /* Chat Panel (NotebookLM) */
+        #notebooklm-container .chat-panel {
+            flex: 1 1 auto;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+        #notebooklm-container .chat-messages-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 15px;
+        }
+
+        #notebooklm-container .chat-panel .upload-ui {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        #notebooklm-container .chat-panel .upload-icon {
+            fill: var(--border-color);
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+        #notebooklm-container .chat-panel .add-source-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        #notebooklm-container .chat-panel .upload-source-btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 30px;
+        }
+        #notebooklm-container .chat-panel .upload-source-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        #notebooklm-container .chat-panel .chat-input-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        #notebooklm-container .chat-panel .chat-input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            background-color: var(--button-bg-light);
+            color: var(--text-color);
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        #notebooklm-container .chat-panel .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+        #notebooklm-container .chat-panel .send-btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        #notebooklm-container .chat-panel .send-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        #notebooklm-container .chat-panel .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+        #notebooklm-container .chat-panel .source-count {
+            font-size: 0.8rem;
+            color: var(--subtle-text);
+            position: absolute;
+            bottom: 10px;
+            right: 65px;
+        }
+        #notebooklm-container .chat-panel .disclaimer {
+            font-size: 0.75rem;
+            color: var(--subtle-text);
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+
+        /* Studio Panel (NotebookLM) */
+        #notebooklm-container .studio-panel {
+            flex: 0 0 280px;
+            max-width: 30%;
+        }
+        #notebooklm-container .studio-panel .studio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #notebooklm-container .studio-panel .studio-card {
+            background-color: var(--button-bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-height: 80px;
+        }
+        #notebooklm-container .studio-panel .studio-card:hover {
+            background-color: var(--button-hover-light);
+        }
+        #notebooklm-container .studio-panel .studio-card svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--icon-color);
+            margin-bottom: 8px;
+        }
+        #notebooklm-container .studio-panel .studio-card span {
+            font-size: 0.85rem;
+            color: var(--button-text-light);
+            font-weight: 500;
+        }
+        #notebooklm-container .studio-panel .add-note-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--subtle-text);
+            font-size: 0.875rem;
+            padding: 20px;
+            flex-grow: 1;
+        }
+        #notebooklm-container .studio-panel .add-note-section svg {
+            width: 60px;
+            height: 60px;
+            fill: var(--border-color);
+            margin-bottom: 10px;
+        }
+        #notebooklm-container .studio-panel .add-note-btn {
+            background-color: var(--text-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: auto;
+        }
+        #notebooklm-container .studio-panel .add-note-btn:hover {
+            background-color: #333;
+        }
+
+        /* Responsive adjustments for NotebookLM UI */
+        @media (max-width: 992px) {
+            #notebooklm-container .main-content-notebooklm {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+            #notebooklm-container .sources-panel,
+            #notebooklm-container .studio-panel {
+                flex: none;
+                width: 100%;
+                max-width: none;
+                display: none; /* Hide by default on small screens, controlled by JS */
+            }
+            #notebooklm-container .chat-panel {
+                min-width: unset;
+                width: 100%; /* Take full width when active */
+                display: flex; /* Ensure chat panel is visible by default */
+            }
+            #notebooklm-container .chat-panel .chat-input-container {
+                max-width: 100%;
+            }
+
+            /* Show tabs on smaller screens */
+            .panel-tabs {
+                display: flex;
+            }
+        }
+
+        /* Further compaction for very small screens (e.g., mobile portrait) */
+        @media (max-width: 576px) {
+            .app-container {
+                padding: 0;
+            }
+            /* Apply reduced margin-bottom to app-header when notebooklm-active */
+            .app-container.notebooklm-active .app-header {
+                margin-bottom: 0px; 
+            }
+
+            .app-header {
+                padding: 10px 15px;
+            }
+
+            #notebooklm-container {
+                min-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            #notebooklm-container .app-header {
+                padding-top: calc(8px + var(--safe-area-top));
+                padding-bottom: 8px;
+                padding-left: calc(10px + var(--safe-area-left));
+                padding-right: calc(10px + var(--safe-area-right));
+            }
+            #notebooklm-container .app-header .left-section {
+                gap: 8px;
+            }
+            #notebooklm-container .app-header .left-section .logo {
+                width: 18px;
+                height: 18px;
+            }
+            #notebooklm-container .app-header .left-section .notebook-title {
+                font-size: 0.9rem;
+            }
+            #notebooklm-container .app-header .right-section {
+                gap: 8px;
+            }
+            #notebooklm-container .app-header .right-section .header-icon-btn {
+                padding: 4px;
+                width: 32px;
+                height: 32px;
+            }
+            #notebooklm-container .app-header .right-section .header-icon-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+            #notebooklm-container .app-header .right-section .user-avatar {
+                width: 24px;
+                height: 24px;
+            }
+            #notebooklm-container .back-to-dashboard-notebooklm {
+                margin-right: 6px;
+                padding: 4px;
+                width: 32px;
+                height: 32px;
+            }
+            #notebooklm-container .back-to-dashboard-notebooklm svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .panel-tabs {
+                padding: 0 8px; /* Reduce horizontal padding for tabs */
+            }
+            .panel-tabs .tab-button {
+                padding: 10px 0; /* Reduce vertical padding for tabs */
+                font-size: 0.85rem; /* Slightly smaller tab font */
+            }
+
+            #notebooklm-container .main-content-notebooklm {
+                padding: 8px;
+                gap: 8px;
+            }
+            #notebooklm-container .panel {
+                border-radius: 8px;
+                padding: 10px;
+            }
+            #notebooklm-container .panel-header {
+                margin-bottom: 10px;
+            }
+            #notebooklm-container .panel-header h3 {
+                font-size: 0.9rem;
+            }
+            #notebooklm-container .panel-header .panel-icon {
+                width: 16px;
+                height: 16px;
+            }
+
+            #notebooklm-container .sources-panel .button-group {
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+            #notebooklm-container .sources-panel .button-group .btn {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+            #notebooklm-container .sources-panel .button-group .btn svg {
+                width: 14px;
+                height: 14px;
+            }
+            #notebooklm-container .sources-panel .empty-state {
+                font-size: 0.75rem;
+                padding: 10px;
+            }
+            #notebooklm-container .sources-panel .empty-state svg {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 6px;
+            }
+
+            #notebooklm-container .chat-panel {
+                padding: 10px; /* Reduced from 15px 10px */
+            }
+            #notebooklm-container .chat-messages-container {
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+            /* Adjusting message margins and max-width for better use of space */
+            .message.user {
+                margin-right: 5px; /* Reduced from 20px */
+                max-width: 95%; /* Increased from 85% */
+            }
+            .message.ai {
+                margin-left: 5px; /* Reduced from 20px */
+                max-width: 95%; /* Increased from 85% */
+            }
+            .message .copy-btn {
+                right: -20px; /* Adjusted to be closer to the message bubble */
+            }
+            .message .copy-feedback {
+                right: -55px; /* Adjusted to be closer to the button */
+            }
+
+            #notebooklm-container .chat-panel .upload-icon {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 10px;
+            }
+            #notebooklm-container .chat-panel .add-source-text {
+                font-size: 0.95rem;
+                margin-bottom: 10px;
+            }
+            #notebooklm-container .chat-panel .upload-source-btn {
+                padding: 7px 18px;
+                font-size: 0.8rem;
+                margin-bottom: 15px;
+            }
+            #notebooklm-container .chat-panel .chat-input-container {
+                gap: 6px;
+                padding-top: 10px;
+            }
+            #notebooklm-container .chat-panel .chat-input {
+                padding: 7px 10px;
+                font-size: 0.8rem;
+                min-height: 32px;
+                max-height: 80px;
+            }
+            #notebooklm-container .chat-panel .send-btn {
+                width: 32px;
+                height: 32px;
+            }
+            #notebooklm-container .chat-panel .send-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+            #notebooklm-container .chat-panel .source-count {
+                font-size: 0.7rem;
+                bottom: 6px;
+                right: 50px;
+            }
+            #notebooklm-container .chat-panel .disclaimer {
+                font-size: 0.65rem;
+                margin-top: 10px;
+                padding: 0 10px;
+            }
+
+            #notebooklm-container .studio-panel {
+                flex: none;
+                width: 100%;
+            }
+            #notebooklm-container .studio-panel .studio-grid {
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+            #notebooklm-container .studio-panel .studio-card {
+                padding: 10px;
+                min-height: 60px;
+            }
+            #notebooklm-container .studio-panel .studio-card svg {
+                width: 18px;
+                height: 18px;
+                margin-bottom: 4px;
+            }
+            #notebooklm-container .studio-panel .studio-card span {
+                font-size: 0.75rem;
+            }
+            #notebooklm-container .studio-panel .add-note-section {
+                font-size: 0.75rem;
+                padding: 10px;
+            }
+            #notebooklm-container .studio-panel .add-note-section svg {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 6px;
+            }
+            #notebooklm-container .studio-panel .add-note-btn {
+                padding: 7px 18px;
+                font-size: 0.8rem;
+            }
         }
     </style>
+    <!-- PDF.js library for rendering PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set the workerSrc for pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 </head>
 <body>
-    <!-- The HTML structure is clean and ready for your www folder -->
-    <div class="app-container">
+    <!-- Original App Container (Dashboard and General Chat) -->
+    <div class="app-container" id="main-app-container">
         <header class="app-header">
-            <h1>AI Hub</h1>
+            <h1>AI Hub 🤖</h1>
             <div class="header-controls">
                 <div class="theme-switch-wrapper">
                     <input type="checkbox" id="theme-checkbox" />
@@ -207,11 +950,11 @@
             <h2>Choose a Tool</h2>
             <p>Select an AI-powered assistant to get started.</p>
             <div class="tool-grid">
-                <div class="tool-card" data-tool="general-chat"><h3>General Chat</h3><p>A friendly AI assistant for questions and conversation.</p></div>
-                <div class="tool-card" data-tool="diet-planner"><h3>Diet Planner</h3><p>Get personalized 7-day meal plans based on your needs.</p></div>
-                <div class="tool-card" data-tool="sentence-corrector"><h3>Sentence Corrector</h3><p>Fix grammar and spelling mistakes in your text instantly.</p></div>
-                <div class="tool-card" data-tool="document-chat"><h3>Chat with Document</h3><p>Upload a .txt file and ask questions about its content.</p></div>
-                <div class="tool-card disabled" data-tool="image-creator"><h3>Image Creator <small>(Coming Soon)</small></h3><p>Generate images from text.</p></div>
+                <div class="tool-card" data-tool="general-chat"><h3>General Chat 💬</h3><p>A friendly AI assistant for questions and conversation.</p></div>
+                <div class="tool-card" data-tool="diet-planner"><h3>Diet Planner 🍎</h3><p>Get personalized 7-day meal plans based on your needs.</p></div>
+                <div class="tool-card" data-tool="sentence-corrector"><h3>Sentence Corrector ✍️</h3><p>Fix grammar and spelling mistakes in your text instantly.</p></div>
+                <div class="tool-card" data-tool="document-chat"><h3>Chat with Document 📄</h3><p>Upload a .txt file and ask questions about its content.</p></div>
+                <div class="tool-card disabled" data-tool="image-creator"><h3>Image Creator 🖼️ <small>(Coming Soon)</small></h3><p>Generate images from text.</p></div>
             </div>
             <section id="history-section">
                 <h2>Recent Chats</h2>
@@ -220,26 +963,7 @@
             </section>
         </main>
 
-        <section id="doc-upload-view" style="display: none;">
-            <header class="chat-header">
-                <div class="chat-header-left">
-                    <button class="back-to-dashboard" aria-label="Back to dashboard">
-                        <svg height="24" viewBox="0 0 24 24" width="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
-                    </button>
-                    <h2>Upload Document</h2>
-                </div>
-            </header>
-            <div class="doc-upload-content">
-                <p>Please upload a plain text (.txt) file.</p>
-                <div class="upload-btn-wrapper">
-                    <button class="btn">Choose File</button>
-                    <input type="file" id="doc-file-input" accept=".txt">
-                </div>
-                <p id="file-name-display">No file selected.</p>
-                <button id="start-doc-chat-btn" disabled>Start Chatting</button>
-            </div>
-        </section>
-
+        <!-- Original General Chat View (now only for general chat, not document chat) -->
         <section id="chat-view" style="display: none;">
             <header class="chat-header">
                 <div class="chat-header-left">
@@ -264,10 +988,117 @@
             </footer>
         </section>
     </div>
+
+    <!-- NotebookLM Style UI Container -->
+    <section id="notebooklm-container" style="display: none;">
+        <header class="app-header">
+            <div class="left-section">
+                <button class="back-to-dashboard-notebooklm" aria-label="Back to dashboard">
+                    <svg height="24" viewBox="0 0 24 24" width="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                </button>
+                <svg class="logo" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6h4.75v-1.5H12.5z"/></svg>
+                <span class="notebook-title">Untitled notebook</span>
+            </div>
+            <div class="right-section">
+                <button class="header-icon-btn" aria-label="Share">
+                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.52.48 1.2.77 1.96.77 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.05 9.81C6.53 9.34 5.84 9.04 5.08 9.04c-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.3 1.96-.77l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+                <button class="header-icon-btn" aria-label="Settings">
+                    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.73-1.7-.98L14.82 2.1C14.72 1.91 14.53 1.8 14.33 1.8h-4.66c-.2 0-.39.11-.48.31L8.04 4.96c-.6.25-1.18.58-1.7.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.09.73 1.7.98l.32 2.86c.09.2.28.31.48.31h4.66c.2 0 .39-.11.48-.31l.32-2.86c.6-.25 1.18-.58 1.7-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                </button>
+                <img class="user-avatar" src="https://placehold.co/32x32/cccccc/ffffff?text=U" alt="User Avatar">
+            </div>
+        </header>
+
+        <div class="panel-tabs">
+            <button class="tab-button active-tab" data-panel="chat-panel">Chat</button>
+            <button class="tab-button" data-panel="sources-panel">Sources</button>
+            <button class="tab-button" data-panel="studio-panel">Studio</button>
+        </div>
+
+        <main class="main-content-notebooklm">
+            <!-- Chat Panel -->
+            <div class="panel chat-panel">
+                <div class="upload-ui" id="notebooklm-upload-ui">
+                    <svg class="upload-icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                    <p class="add-source-text">Add a source to get started</p>
+                    <button class="upload-source-btn" id="notebooklm-upload-source-btn">Upload a source</button>
+                    <input type="file" id="notebooklm-doc-file-input" accept=".txt, .pdf" style="display: none;">
+                    <p id="notebooklm-file-name-display" style="font-style: italic; color: var(--subtle-text); margin-bottom: 10px;"></p>
+                </div>
+                
+                <div class="chat-messages-container" id="notebooklm-chat-messages">
+                    <!-- Chat messages will be appended here -->
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="notebooklm-message-input" placeholder="Upload a source to get started" rows="1"></textarea>
+                    <span class="source-count" id="notebooklm-source-count">0 sources</span>
+                    <button class="send-btn" id="notebooklm-send-btn">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+                <p class="disclaimer">NotebookLM can be inaccurate, please double-check its responses.</p>
+            </div>
+
+            <!-- Sources Panel -->
+            <div class="panel sources-panel">
+                <div class="panel-header">
+                    <h3>Sources</h3>
+                    <svg class="panel-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                </div>
+                <div class="button-group">
+                    <button class="btn" id="add-source-btn">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        Add
+                    </button>
+                    <button class="btn">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        Discover
+                    </button>
+                </div>
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                    <p>Saved sources will appear here</p>
+                    <p>Click Add source above to add PDFs, websites, text, videos or audio files. Or import a file directly from Google Drive.</p>
+                </div>
+            </div>
+
+            <!-- Studio Panel -->
+            <div class="panel studio-panel">
+                <div class="panel-header">
+                    <h3>Studio</h3>
+                    <svg class="panel-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6h4.75v-1.5H12.5z"/></svg>
+                </div>
+                <div class="studio-grid">
+                    <div class="studio-card">
+                        <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                        <span>Audio Overview</span>
+                    </div>
+                    <div class="studio-card">
+                        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                        <span>Video Overview</span>
+                    </div>
+                    <div class="studio-card">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                        <span>Mind Map</span>
+                    </div>
+                    <div class="studio-card">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        <span>Reports</span>
+                    </div>
+                </div>
+                <div class="add-note-section">
+                    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    <p>Studio output will be saved here.</p>
+                    <p>After adding sources, click to add Audio Overview, study guide, mind map and more!</p>
+                    <button class="add-note-btn">Add note</button>
+                </div>
+            </div>
+        </main>
+    </section>
     
     <script>
-        // All JavaScript is the same as the previous optimized version.
-        // It's omitted here for brevity.
         document.addEventListener('DOMContentLoaded', () => {
             const API_KEY = 'AIzaSyADjZe5tuBJVWpWHX153lJvF_FuMMy8k28';
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?alt=sse&key=${API_KEY}`;
@@ -275,44 +1106,61 @@
                 'general-chat': { title: 'General Chat', isStateful: true, welcomeMessage: 'Hello! How can I help you today?', systemPrompt: 'You are a helpful and friendly general-purpose AI assistant.' },
                 'diet-planner': { title: 'Diet Planner', isStateful: true, welcomeMessage: 'Welcome! Describe your dietary goals, preferences, and allergies to get a 7-day meal plan.', systemPrompt: 'You are an expert diet and nutrition assistant...' },
                 'sentence-corrector': { title: 'Sentence Corrector', isStateful: false, welcomeMessage: 'Welcome! Provide the text you want me to fix.', systemPrompt: 'You are a grammar and spelling correction tool...' },
-                'document-chat': { title: 'Document Chat', isStateful: true, welcomeMessage: 'Document processed. You can now ask questions about its content.', systemPrompt: 'You are an AI assistant that answers questions based *only* on the provided document text...' }
+                'document-chat': { title: 'Document Chat', isStateful: true, welcomeMessage: 'Document processed. You can now ask questions about its content.', systemPrompt: 'You are an AI assistant that answers questions based *only* on the provided document text. Do not use any external knowledge. If the answer is not in the document, state that you cannot find the information in the provided document.' }
             };
             let currentTool = null, chatHistory = [], documentContext = "", apiController = null;
             const DOMElements = {
+                mainAppContainer: document.getElementById('main-app-container'),
                 dashboardView: document.getElementById('dashboard-view'),
-                chatView: document.getElementById('chat-view'),
-                docUploadView: document.getElementById('doc-upload-view'),
+                chatView: document.getElementById('chat-view'), // Original general chat view
                 toolCards: document.querySelectorAll('.tool-card:not(.disabled)'),
-                backToDashboardBtns: document.querySelectorAll('.back-to-dashboard'),
+                backToDashboardBtns: document.querySelectorAll('.back-to-dashboard'), // For original chat view
                 newChatBtn: document.getElementById('new-chat-btn'),
                 chatTitle: document.getElementById('chat-title'),
                 chatContainer: document.getElementById('chat-container'),
                 messageForm: document.getElementById('message-form'),
                 messageInput: document.getElementById('message-input'),
-                startDocChatBtn: document.getElementById('start-doc-chat-btn'),
-                docFileInput: document.getElementById('doc-file-input'),
-                fileNameDisplay: document.getElementById('file-name-display'),
                 historyList: document.getElementById('history-list'),
                 noHistoryMessage: document.getElementById('no-history-message'),
                 themeToggle: document.getElementById('theme-checkbox'),
                 stopBtn: document.getElementById('stop-generating-btn'),
+
+                // NotebookLM UI elements
+                notebooklmContainer: document.getElementById('notebooklm-container'),
+                notebooklmBackBtn: document.querySelector('#notebooklm-container .back-to-dashboard-notebooklm'),
+                notebooklmUploadUI: document.getElementById('notebooklm-upload-ui'), // New: the upload initial state div
+                notebooklmUploadSourceBtn: document.getElementById('notebooklm-upload-source-btn'),
+                notebooklmDocFileInput: document.getElementById('notebooklm-doc-file-input'),
+                notebooklmFileNameDisplay: document.getElementById('notebooklm-file-name-display'),
+                notebooklmMessageInput: document.getElementById('notebooklm-message-input'),
+                notebooklmSendBtn: document.getElementById('notebooklm-send-btn'),
+                notebooklmSourceCount: document.getElementById('notebooklm-source-count'),
+                notebooklmChatPanel: document.querySelector('#notebooklm-container .chat-panel'),
+                notebooklmChatMessagesContainer: document.getElementById('notebooklm-chat-messages'), // New: container for chat messages
+                notebooklmSourcesPanel: document.querySelector('#notebooklm-container .sources-panel'),
+                notebooklmStudioPanel: document.querySelector('#notebooklm-container .studio-panel'),
+                notebooklmTabButtons: document.querySelectorAll('.panel-tabs .tab-button')
             };
 
             function showView(viewName, toolKey = null) {
+                // Hide all main views by default
                 DOMElements.dashboardView.style.display = 'none';
                 DOMElements.chatView.style.display = 'none';
-                DOMElements.docUploadView.style.display = 'none';
+                DOMElements.notebooklmContainer.style.display = 'none'; // Hide NotebookLM by default
+                DOMElements.mainAppContainer.style.display = 'none'; // Hide the main app container by default
+
+                // Remove the notebooklm-active class from the main app container
+                // This class was used for a previous attempt at styling, but the
+                // new approach is to hide the entire main app container.
+                DOMElements.mainAppContainer.classList.remove('notebooklm-active');
+
                 if (viewName === 'dashboard') {
+                    DOMElements.mainAppContainer.style.display = 'block'; // Show main app container
                     DOMElements.dashboardView.style.display = 'block';
                     currentTool = null;
                     renderHistoryList();
-                } else if (viewName === 'doc-upload') {
-                    DOMElements.docUploadView.style.display = 'flex';
-                    documentContext = "";
-                    DOMElements.docFileInput.value = null;
-                    DOMElements.fileNameDisplay.textContent = "No file selected.";
-                    DOMElements.startDocChatBtn.disabled = true;
-                } else if (viewName === 'chat') {
+                } else if (viewName === 'chat') { // This is for general chat tools
+                    DOMElements.mainAppContainer.style.display = 'block'; // Show main app container
                     currentTool = toolKey;
                     const tool = ToolConfig[currentTool];
                     DOMElements.chatTitle.textContent = tool.title;
@@ -320,23 +1168,47 @@
                     DOMElements.newChatBtn.style.display = tool.isStateful ? 'inline-block' : 'none';
                     DOMElements.chatView.style.display = 'flex';
                     DOMElements.messageInput.focus();
+                } else if (viewName === 'notebooklm-document-chat') { // New view for document chat
+                    // When document chat is active, only show the notebooklm-container
+                    DOMElements.notebooklmContainer.style.display = 'flex'; // Show NotebookLM UI
+                    
+                    // Reset document chat specific states
+                    documentContext = "";
+                    DOMElements.notebooklmDocFileInput.value = null;
+                    DOMElements.notebooklmFileNameDisplay.textContent = "";
+                    DOMElements.notebooklmMessageInput.placeholder = "Upload a source to get started";
+                    DOMElements.notebooklmSourceCount.textContent = "0 sources";
+                    
+                    // Show initial upload UI, hide chat messages
+                    DOMElements.notebooklmUploadUI.style.display = 'flex';
+                    DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
+                    DOMElements.notebooklmChatMessagesContainer.innerHTML = ''; // Clear previous messages
+                    
+                    // Set default active tab to Chat and show only chat panel
+                    setActiveNotebookLMTab('chat-panel');
+
+                    // Re-assign event listeners for dynamically added elements (if any were removed/added)
+                    assignNotebookLMEvents();
                 }
             }
+
             function applyTheme(theme) {
                 document.body.classList.toggle('dark-mode', theme === 'dark');
                 DOMElements.themeToggle.checked = (theme === 'dark');
             }
+
+            // Original chat history functions (for general chat)
             function loadChatHistory() {
                 const savedHistory = localStorage.getItem(`chatHistory_${currentTool}`);
                 DOMElements.chatContainer.innerHTML = '';
                 if (savedHistory) {
                     chatHistory = JSON.parse(savedHistory);
-                    chatHistory.forEach(msg => addMessageToUI(msg.text, msg.sender, msg.id));
+                    chatHistory.forEach(msg => addMessageToUI(msg.text, msg.sender, msg.id, DOMElements.chatContainer));
                 } else {
                     const tool = ToolConfig[currentTool];
                     const welcomeMsg = tool.welcomeMessage;
                     chatHistory = [{ sender: 'ai', text: welcomeMsg, timestamp: Date.now(), id: `ai-${Date.now()}` }];
-                    addMessageToUI(welcomeMsg, 'ai', chatHistory[0].id);
+                    addMessageToUI(welcomeMsg, 'ai', chatHistory[0].id, DOMElements.chatContainer);
                     saveChatHistory();
                 }
             }
@@ -367,9 +1239,9 @@
                 DOMElements.historyList.appendChild(fragment);
             }
             function formatMessage(text) {
-                return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/``````(.*?)/gs, `<pre><code>$1</code></pre>`).replace(/\*\*(.*?)\*\*/g, '<h3>$1</h3>').replace(/\*(.*?)\*/g, '<b>$1</b>').replace(/^\s*-\s*(.*$)/gm, '<li>$1</li>').replace(/\n/g, '<br>');
+                return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/```(.*?)/gs, `<pre><code>$1</code></pre>`).replace(/\*\*(.*?)\*\*/g, '<h3>$1</h3>').replace(/\*(.*?)\*/g, '<b>$1</b>').replace(/^\s*-\s*(.*$)/gm, '<li>$1</li>').replace(/\n/g, '<br>');
             }
-            function addMessageToUI(text, sender, id) {
+            function addMessageToUI(text, sender, id, container) {
                 const messageWrapper = document.createElement('div');
                 messageWrapper.className = 'message-wrapper';
                 const messageElement = document.createElement('div');
@@ -387,7 +1259,7 @@
                     copyFeedback.className = 'copy-feedback';
                     copyFeedback.textContent = 'Copied!';
                     copyBtn.addEventListener('click', () => {
-                        navigator.clipboard.writeText(messageContent.innerText);
+                        document.execCommand('copy'); // Use execCommand for clipboard access in iframe
                         copyFeedback.style.opacity = '1';
                         setTimeout(() => copyFeedback.style.opacity = '0', 2000);
                     });
@@ -395,32 +1267,38 @@
                     messageElement.appendChild(copyFeedback);
                 }
                 messageWrapper.appendChild(messageElement);
-                DOMElements.chatContainer.appendChild(messageWrapper);
-                DOMElements.chatContainer.scrollTop = DOMElements.chatContainer.scrollHeight;
+                container.appendChild(messageWrapper);
+                container.scrollTop = container.scrollHeight;
                 return messageContent;
             }
-            function showTypingIndicator() {
+            function showTypingIndicator(container) {
                 const indicator = document.createElement('div');
                 indicator.className = 'typing-indicator';
-                indicator.id = 'typing-indicator';
+                indicator.id = 'typing-indicator'; // Use a consistent ID
                 indicator.innerHTML = '<span></span><span></span><span></span>';
-                DOMElements.chatContainer.appendChild(indicator);
-                DOMElements.chatContainer.scrollTop = DOMElements.chatContainer.scrollHeight;
+                container.appendChild(indicator);
+                container.scrollTop = container.scrollHeight;
             }
             function removeTypingIndicator() {
-                document.getElementById('typing-indicator')?.remove();
+                // Ensure we remove the correct typing indicator, regardless of which chat is active
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
             }
+            
+            // Original handleFormSubmit (for general chat)
             async function handleFormSubmit(e) {
                 e.preventDefault();
                 const userMessage = DOMElements.messageInput.value.trim();
                 if (!userMessage || !currentTool) return;
                 const userMsgId = `user-${Date.now()}`;
-                addMessageToUI(userMessage, 'user', userMsgId);
+                addMessageToUI(userMessage, 'user', userMsgId, DOMElements.chatContainer);
                 chatHistory.push({ sender: 'user', text: userMessage, timestamp: Date.now(), id: userMsgId });
                 saveChatHistory();
                 DOMElements.messageInput.value = '';
                 DOMElements.messageInput.style.height = 'auto';
-                showTypingIndicator();
+                showTypingIndicator(DOMElements.chatContainer);
                 DOMElements.stopBtn.style.display = 'inline-block';
                 apiController = new AbortController();
                 const aiMsgId = `ai-${Date.now()}`;
@@ -428,9 +1306,7 @@
                 try {
                     const tool = ToolConfig[currentTool];
                     let systemPromptText = tool.systemPrompt;
-                    if (currentTool === 'document-chat') {
-                        systemPromptText += `\n\n--- DOCUMENT START ---\n${documentContext}\n--- DOCUMENT END ---`;
-                    }
+                    
                     const systemInstruction = { role: 'user', parts: [{ text: systemPromptText }] };
                     const responseInstruction = { role: 'model', parts: [{ text: "OK. I will follow these instructions."}] };
                     let contentsToSend = [systemInstruction, responseInstruction];
@@ -448,7 +1324,7 @@
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     removeTypingIndicator();
-                    aiMessageElement = addMessageToUI('', 'ai', aiMsgId);
+                    aiMessageElement = addMessageToUI('', 'ai', aiMsgId, DOMElements.chatContainer);
                     let buffer = '';
                     while (true) {
                         const { value, done } = await reader.read();
@@ -473,7 +1349,7 @@
                     removeTypingIndicator();
                     if (error.name !== 'AbortError') {
                         const errorText = `An error occurred: ${error.message}`;
-                        const errorElement = aiMessageElement || addMessageToUI('', 'ai', aiMsgId);
+                        const errorElement = aiMessageElement || addMessageToUI('', 'ai', aiMsgId, DOMElements.chatContainer);
                         errorElement.innerHTML = `<span style="color: #e74c3c;">${errorText}</span>`;
                         console.error('API Error:', error);
                     }
@@ -482,45 +1358,280 @@
                     apiController = null;
                 }
             }
+
+            // New function for NotebookLM specific send logic
+            async function handleNotebookLMSend() {
+                const userMessage = DOMElements.notebooklmMessageInput.value.trim();
+                if (!userMessage) return;
+
+                if (!documentContext) {
+                    alert("Please upload a document first to start chatting."); // Use alert for simplicity here
+                    return;
+                }
+
+                const userMsgId = `user-notebooklm-${Date.now()}`;
+                addMessageToUI(userMessage, 'user', userMsgId, DOMElements.notebooklmChatMessagesContainer);
+                DOMElements.notebooklmMessageInput.value = '';
+                DOMElements.notebooklmMessageInput.style.height = 'auto';
+
+                showTypingIndicator(DOMElements.notebooklmChatMessagesContainer);
+                apiController = new AbortController();
+                const aiMsgId = `ai-notebooklm-${Date.now()}`;
+                let aiMessageElement, fullResponse = '';
+
+                try {
+                    const tool = ToolConfig['document-chat']; // Always use document-chat config for this UI
+                    const systemPromptText = tool.systemPrompt + `\n\n--- DOCUMENT START ---\n${documentContext}\n--- DOCUMENT END ---`;
+                    
+                    const contentsToSend = [
+                        { role: 'user', parts: [{ text: systemPromptText }] },
+                        { role: 'model', parts: [{ text: "OK. I will follow these instructions."}] },
+                        { role: 'user', parts: [{ text: userMessage }]}
+                    ];
+
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: contentsToSend }),
+                        signal: apiController.signal,
+                    });
+
+                    if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    removeTypingIndicator(); // Remove indicator once first chunk arrives
+                    aiMessageElement = addMessageToUI('', 'ai', aiMsgId, DOMElements.notebooklmChatMessagesContainer);
+                    let buffer = '';
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // Keep incomplete line in buffer
+                        for (const line of lines) {
+                            if (!line.startsWith('data:')) continue;
+                            try {
+                                const parsed = JSON.parse(line.substring(6));
+                                const textChunk = parsed.candidates[0]?.content?.parts[0]?.text || '';
+                                fullResponse += textChunk;
+                                aiMessageElement.innerHTML = formatMessage(fullResponse);
+                                DOMElements.notebooklmChatMessagesContainer.scrollTop = DOMElements.notebooklmChatMessagesContainer.scrollHeight;
+                            } catch (e) { console.error("Could not parse JSON chunk:", line, e); }
+                        }
+                    }
+                    // No chat history saving for document chat in this iteration, as it's more complex
+                    // to save document content with chat history.
+                } catch (error) {
+                    removeTypingIndicator();
+                    if (error.name !== 'AbortError') {
+                        const errorText = `An error occurred: ${error.message}`;
+                        const errorElement = aiMessageElement || addMessageToUI('', 'ai', aiMsgId, DOMElements.notebooklmChatMessagesContainer);
+                        errorElement.innerHTML = `<span style="color: #e74c3c;">${errorText}</span>`;
+                        console.error('API Error:', error);
+                    }
+                } finally {
+                    apiController = null;
+                }
+            }
+
+            function setActiveNotebookLMTab(panelId) {
+                // Hide all panels
+                DOMElements.notebooklmSourcesPanel.style.display = 'none';
+                DOMElements.notebooklmChatPanel.style.display = 'none';
+                DOMElements.notebooklmStudioPanel.style.display = 'none';
+
+                // Remove active class from all tabs
+                DOMElements.notebooklmTabButtons.forEach(tab => tab.classList.remove('active-tab'));
+
+                // Show the selected panel and set active tab
+                if (panelId === 'sources-panel') {
+                    DOMElements.notebooklmSourcesPanel.style.display = 'flex';
+                    document.querySelector('.tab-button[data-panel="sources-panel"]').classList.add('active-tab');
+                } else if (panelId === 'chat-panel') {
+                    DOMElements.notebooklmChatPanel.style.display = 'flex';
+                    document.querySelector('.tab-button[data-panel="chat-panel"]').classList.add('active-tab');
+                } else if (panelId === 'studio-panel') {
+                    DOMElements.notebooklmStudioPanel.style.display = 'flex';
+                    document.querySelector('.tab-button[data-panel="studio-panel"]').classList.add('active-tab');
+                }
+            }
+
+
+            // New function for NotebookLM specific event listeners
+            function assignNotebookLMEvents() {
+                // Re-get elements as they might be dynamically replaced
+                DOMElements.notebooklmUploadUI = document.getElementById('notebooklm-upload-ui');
+                DOMElements.notebooklmUploadSourceBtn = document.getElementById('notebooklm-upload-source-btn');
+                DOMElements.notebooklmDocFileInput = document.getElementById('notebooklm-doc-file-input');
+                DOMElements.notebooklmFileNameDisplay = document.getElementById('notebooklm-file-name-display');
+                DOMElements.notebooklmMessageInput = document.getElementById('notebooklm-message-input');
+                DOMElements.notebooklmSendBtn = document.getElementById('notebooklm-send-btn');
+                DOMElements.notebooklmSourceCount = document.getElementById('notebooklm-source-count');
+                DOMElements.notebooklmChatMessagesContainer = document.getElementById('notebooklm-chat-messages');
+                DOMElements.notebooklmBackBtn = document.querySelector('#notebooklm-container .back-to-dashboard-notebooklm');
+                DOMElements.notebooklmSourcesPanel = document.querySelector('#notebooklm-container .sources-panel');
+                DOMElements.notebooklmStudioPanel = document.querySelector('#notebooklm-container .studio-panel');
+                DOMElements.notebooklmTabButtons = document.querySelectorAll('.panel-tabs .tab-button');
+
+
+                if (DOMElements.notebooklmUploadSourceBtn) {
+                    DOMElements.notebooklmUploadSourceBtn.onclick = () => {
+                        DOMElements.notebooklmDocFileInput.click();
+                    };
+                }
+
+                if (DOMElements.notebooklmDocFileInput) {
+                    DOMElements.notebooklmDocFileInput.onchange = async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        DOMElements.notebooklmFileNameDisplay.textContent = `Processing: ${file.name}...`;
+                        DOMElements.notebooklmMessageInput.placeholder = "Processing document...";
+                        DOMElements.notebooklmMessageInput.disabled = true; // Disable input during processing
+                        DOMElements.notebooklmSendBtn.disabled = true; // Disable send button
+
+                        documentContext = ""; // Clear previous context
+
+                        try {
+                            if (file.type === "text/plain") {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    documentContext = e.target.result;
+                                    DOMElements.notebooklmFileNameDisplay.textContent = `Selected: ${file.name}`;
+                                    DOMElements.notebooklmSourceCount.textContent = "1 source";
+                                    DOMElements.notebooklmMessageInput.placeholder = "Ask a question about your document...";
+                                    DOMElements.notebooklmMessageInput.disabled = false;
+                                    DOMElements.notebooklmSendBtn.disabled = false;
+                                    
+                                    // Hide upload UI, show chat messages container
+                                    DOMElements.notebooklmUploadUI.style.display = 'none';
+                                    DOMElements.notebooklmChatMessagesContainer.style.display = 'flex';
+                                    addMessageToUI(ToolConfig['document-chat'].welcomeMessage, "ai", `ai-${Date.now()}`, DOMElements.notebooklmChatMessagesContainer);
+                                    DOMElements.notebooklmMessageInput.focus();
+                                };
+                                reader.onerror = () => {
+                                    throw new Error("Error reading text file.");
+                                };
+                                reader.readAsText(file);
+                            } else if (file.type === "application/pdf") {
+                                const fileReader = new FileReader();
+                                fileReader.onload = async () => {
+                                    const typedarray = new Uint8Array(fileReader.result);
+                                    const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                                    let fullPdfText = "";
+                                    for (let i = 1; i <= pdf.numPages; i++) {
+                                        const page = await pdf.getPage(i);
+                                        const textContent = await page.getTextContent();
+                                        fullPdfText += textContent.items.map(item => item.str).join(' ') + "\n";
+                                    }
+                                    documentContext = fullPdfText;
+                                    DOMElements.notebooklmFileNameDisplay.textContent = `Selected: ${file.name}`;
+                                    DOMElements.notebooklmSourceCount.textContent = "1 source";
+                                    DOMElements.notebooklmMessageInput.placeholder = "Ask a question about your document...";
+                                    DOMElements.notebooklmMessageInput.disabled = false;
+                                    DOMElements.notebooklmSendBtn.disabled = false;
+
+                                    // Hide upload UI, show chat messages container
+                                    DOMElements.notebooklmUploadUI.style.display = 'none';
+                                    DOMElements.notebooklmChatMessagesContainer.style.display = 'flex';
+                                    addMessageToUI(ToolConfig['document-chat'].welcomeMessage, "ai", `ai-${Date.now()}`, DOMElements.notebooklmChatMessagesContainer);
+                                    DOMElements.notebooklmMessageInput.focus();
+                                };
+                                fileReader.onerror = () => {
+                                    throw new Error("Error reading PDF file.");
+                                };
+                                fileReader.readAsArrayBuffer(file);
+                            } else {
+                                throw new Error("Invalid file type. Please upload a .txt or .pdf file.");
+                            }
+                        } catch (error) {
+                            DOMElements.notebooklmFileNameDisplay.textContent = `Error: ${error.message}`;
+                            documentContext = "";
+                            DOMElements.notebooklmSourceCount.textContent = "0 sources";
+                            DOMElements.notebooklmMessageInput.placeholder = "Upload a source to get started";
+                            DOMElements.notebooklmMessageInput.disabled = false; // Re-enable in case of error
+                            DOMElements.notebooklmSendBtn.disabled = false; // Re-enable in case of error
+                            // Show upload UI again if error
+                            DOMElements.notebooklmUploadUI.style.display = 'flex';
+                            DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
+                            console.error("File processing error:", error);
+                        }
+                    };
+                }
+
+                if (DOMElements.notebooklmSendBtn) {
+                    DOMElements.notebooklmSendBtn.onclick = handleNotebookLMSend;
+                }
+
+                if (DOMElements.notebooklmMessageInput) {
+                    DOMElements.notebooklmMessageInput.addEventListener('input', () => {
+                        DOMElements.notebooklmMessageInput.style.height = 'auto';
+                        DOMElements.notebooklmMessageInput.style.height = `${DOMElements.notebooklmMessageInput.scrollHeight}px`;
+                    });
+                     // Allow sending with Enter key
+                    DOMElements.notebooklmMessageInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleNotebookLMSend();
+                        }
+                    });
+                }
+
+                // Back button for NotebookLM UI
+                if (DOMElements.notebooklmBackBtn) {
+                    DOMElements.notebooklmBackBtn.addEventListener('click', () => {
+                        showView('dashboard');
+                    });
+                }
+
+                // Tab switching for NotebookLM UI
+                DOMElements.notebooklmTabButtons.forEach(tabButton => {
+                    tabButton.addEventListener('click', (e) => {
+                        const panelId = e.target.dataset.panel;
+                        setActiveNotebookLMTab(panelId);
+                    });
+                });
+            }
+
             function initEventListeners() {
                 DOMElements.toolCards.forEach(card => card.addEventListener('click', (e) => {
                     const toolKey = e.currentTarget.dataset.tool;
-                    if (toolKey === 'document-chat') showView('doc-upload');
-                    else showView('chat', toolKey);
+                    if (toolKey === 'document-chat') {
+                        showView('notebooklm-document-chat');
+                    } else {
+                        showView('chat', toolKey);
+                    }
                 }));
+
                 DOMElements.historyList.addEventListener('click', (e) => {
                     const item = e.target.closest('.history-item');
-                    if (item) showView('chat', item.dataset.tool);
+                    if (item) {
+                        // If it's a document chat history, might need to load NotebookLM UI
+                        if (item.dataset.tool === 'document-chat') {
+                            showView('notebooklm-document-chat');
+                            // In a real app, you'd load the saved document and its chat history here.
+                            // For this example, we'll just show a message.
+                            setTimeout(() => {
+                                addMessageToUI("Please re-upload your document to continue this conversation, as document content is not saved in history.", "ai", `ai-${Date.now()}`, DOMElements.notebooklmChatMessagesContainer);
+                                DOMElements.notebooklmUploadUI.style.display = 'none'; // Hide upload UI
+                                DOMElements.notebooklmChatMessagesContainer.style.display = 'flex'; // Show chat messages
+                            }, 100);
+                        } else {
+                            showView('chat', item.dataset.tool);
+                        }
+                    }
                 });
+
                 DOMElements.backToDashboardBtns.forEach(btn => btn.addEventListener('click', () => showView('dashboard')));
                 DOMElements.newChatBtn.addEventListener('click', () => {
-                    if (confirm('Are you sure?')) {
+                    if (window.confirm('Are you sure you want to start a new chat? This will clear the current conversation.')) {
                         localStorage.removeItem(`chatHistory_${currentTool}`);
-                        if (currentTool === 'document-chat') showView('doc-upload');
-                        else showView('chat', currentTool);
+                        showView('chat', currentTool); // Re-show current chat type after clearing
                     }
                 });
-                DOMElements.docFileInput.addEventListener('change', () => {
-                    const file = DOMElements.docFileInput.files[0];
-                    if (file && file.type === "text/plain") {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            documentContext = e.target.result;
-                            DOMElements.fileNameDisplay.textContent = `Selected: ${file.name}`;
-                            DOMElements.startDocChatBtn.disabled = false;
-                        };
-                        reader.onerror = () => { DOMElements.fileNameDisplay.textContent = "Error reading file."; documentContext = ""; DOMElements.startDocChatBtn.disabled = true; };
-                        reader.readAsText(file);
-                    } else {
-                        DOMElements.fileNameDisplay.textContent = "Invalid file. Please use a .txt file."; documentContext = ""; DOMElements.startDocChatBtn.disabled = true;
-                    }
-                });
-                DOMElements.startDocChatBtn.addEventListener('click', () => {
-                    if (documentContext) {
-                        localStorage.removeItem('chatHistory_document-chat');
-                        showView('chat', 'document-chat');
-                    }
-                });
+                
                 DOMElements.messageForm.addEventListener('submit', handleFormSubmit);
                 DOMElements.messageInput.addEventListener('input', () => {
                     DOMElements.messageInput.style.height = 'auto';
@@ -534,7 +1645,11 @@
                 DOMElements.stopBtn.addEventListener('click', () => {
                     if (apiController) apiController.abort();
                 });
+
+                // Initial assignment of NotebookLM events
+                assignNotebookLMEvents();
             }
+
             function initialize() {
                 const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                 applyTheme(savedTheme);
@@ -544,15 +1659,16 @@
 
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', () => {
-                    const input = document.getElementById('message-input');
-                    if (document.activeElement === input) {
+                    const input = document.activeElement;
+                    if (input && (input.id === 'message-input' || input.id === 'notebooklm-message-input')) {
                         setTimeout(() => {
-                            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 100);
+                            input.style.height = 'auto';
+                            input.style.height = `${input.scrollHeight}px`;
+                        }, 300);
                     }
                 });
             }
-
+            
             initialize();
         });
     </script>
