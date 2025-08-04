@@ -237,6 +237,15 @@
         .message-form button:hover { background-color: var(--primary-hover); }
         .message-form button svg { fill: #fff; }
 
+        /* Disclaimer text common style */
+        .disclaimer {
+            font-size: 0.75rem;
+            color: var(--subtle-text);
+            margin-top: 20px;
+            padding: 0 20px;
+            text-align: center; /* Center the disclaimer text */
+        }
+
         /* --- RESPONSIVE STYLES (Original UI) --- */
         @media (min-width: 769px) {
             #chat-view {
@@ -418,7 +427,19 @@
             padding: 16px;
             flex-shrink: 0;
             overflow: hidden;
+            /* Glass effect properties */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Light border */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
         }
+
+        body.dark-mode #notebooklm-container .panel {
+            background-color: rgba(0, 0, 0, 0.1); /* Semi-transparent black for dark mode */
+            border: 1px solid rgba(0, 0, 0, 0.2); /* Dark border for dark mode */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Darker shadow for dark mode */
+        }
+
         #notebooklm-container .panel-header {
             display: flex;
             justify-content: space-between;
@@ -601,13 +622,6 @@
             bottom: 10px;
             right: 65px;
         }
-        #notebooklm-container .chat-panel .disclaimer {
-            font-size: 0.75rem;
-            color: var(--subtle-text);
-            margin-top: 20px;
-            padding: 0 20px;
-        }
-
         /* Studio Panel (NotebookLM) */
         #notebooklm-container .studio-panel {
             flex: 0 0 280px;
@@ -701,9 +715,9 @@
                 max-width: 100%;
             }
 
-            /* Show tabs on smaller screens */
+            /* Hide tabs on smaller screens */
             .panel-tabs {
-                display: flex;
+                display: none; 
             }
         }
 
@@ -769,12 +783,9 @@
                 height: 18px;
             }
 
+            /* Hide tabs on very small screens too */
             .panel-tabs {
-                padding: 0 8px; /* Reduce horizontal padding for tabs */
-            }
-            .panel-tabs .tab-button {
-                padding: 10px 0; /* Reduce vertical padding for tabs */
-                font-size: 0.85rem; /* Slightly smaller tab font */
+                display: none; 
             }
 
             #notebooklm-container .main-content-notebooklm {
@@ -918,6 +929,92 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Save Prompt Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .modal-content p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .modal-content input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .modal-buttons .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .modal-buttons .save-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .modal-buttons .cancel-btn {
+            background-color: var(--button-bg-light);
+            color: var(--button-text-light);
+        }
+
+        .modal-buttons .cancel-btn:hover {
+            background-color: var(--button-hover-light);
+        }
     </style>
     <!-- PDF.js library for rendering PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -961,6 +1058,7 @@
                 <div id="history-list"></div>
                 <p id="no-history-message" style="display: none; text-align: center; opacity: 0.7;">No recent chats found.</p>
             </section>
+            <p class="disclaimer">Please remember that AI Hub is a developing AI. Double-check its responses for accuracy.</p>
         </main>
 
         <!-- Original General Chat View (now only for general chat, not document chat) -->
@@ -973,8 +1071,8 @@
                     <h2 id="chat-title">AI Assistant</h2>
                 </div>
                 <div class="chat-header-controls">
-                    <button id="stop-generating-btn" class="control-btn">Stop</button>
                     <button id="new-chat-btn" class="control-btn">New Chat</button>
+                    <button id="stop-generating-btn" class="control-btn">Stop</button>
                 </div>
             </header>
             <div class="chat-container" id="chat-container"></div>
@@ -985,6 +1083,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
                 </form>
+                <p class="disclaimer">Please remember that AI Hub is a developing AI. Double-check its responses for accuracy.</p>
             </footer>
         </section>
     </div>
@@ -997,7 +1096,7 @@
                     <svg height="24" viewBox="0 0 24 24" width="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
                 </button>
                 <svg class="logo" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6h4.75v-1.5H12.5z"/></svg>
-                <span class="notebook-title">Untitled notebook</span>
+                <span class="notebook-title" id="notebooklm-title">Untitled notebook</span>
             </div>
             <div class="right-section">
                 <button class="header-icon-btn" aria-label="Share">
@@ -1038,7 +1137,7 @@
                         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
                 </div>
-                <p class="disclaimer">NotebookLM can be inaccurate, please double-check its responses.</p>
+                <p class="disclaimer">Please remember that AI Hub is a developing AI. Double-check its responses for accuracy.</p>
             </div>
 
             <!-- Sources Panel -->
@@ -1059,7 +1158,7 @@
                 </div>
                 <div class="empty-state">
                     <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
-                    <p>Saved sources will appear here</p>
+                    <p>Saved sources will appear here.</p>
                     <p>Click Add source above to add PDFs, websites, text, videos or audio files. Or import a file directly from Google Drive.</p>
                 </div>
             </div>
@@ -1092,11 +1191,23 @@
                     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                     <p>Studio output will be saved here.</p>
                     <p>After adding sources, click to add Audio Overview, study guide, mind map and more!</p>
-                    <button class="add-note-btn">Add note</button>
                 </div>
             </div>
         </main>
     </section>
+
+    <!-- Save Prompt Modal -->
+    <div id="save-prompt-modal" class="modal">
+        <div class="modal-content">
+            <h3>Save Session</h3>
+            <p>Give your document chat session a name:</p>
+            <input type="text" id="save-session-name-input" placeholder="e.g., My Research Notes" />
+            <div class="modal-buttons">
+                <button class="save-btn" id="save-session-confirm-btn">Save</button>
+                <button class="cancel-btn" id="save-session-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1109,6 +1220,8 @@
                 'document-chat': { title: 'Document Chat', isStateful: true, welcomeMessage: 'Document processed. You can now ask questions about its content.', systemPrompt: 'You are an AI assistant that answers questions based *only* on the provided document text. Do not use any external knowledge. If the answer is not in the document, state that you cannot find the information in the provided document.' }
             };
             let currentTool = null, chatHistory = [], documentContext = "", apiController = null;
+            let currentDocumentSessionId = null; // New: To track the ID of the currently loaded document chat session
+
             const DOMElements = {
                 mainAppContainer: document.getElementById('main-app-container'),
                 dashboardView: document.getElementById('dashboard-view'),
@@ -1139,10 +1252,24 @@
                 notebooklmChatMessagesContainer: document.getElementById('notebooklm-chat-messages'), // New: container for chat messages
                 notebooklmSourcesPanel: document.querySelector('#notebooklm-container .sources-panel'),
                 notebooklmStudioPanel: document.querySelector('#notebooklm-container .studio-panel'),
-                notebooklmTabButtons: document.querySelectorAll('.panel-tabs .tab-button')
+                notebooklmTabButtons: document.querySelectorAll('.panel-tabs .tab-button'),
+                notebooklmTitle: document.getElementById('notebooklm-title'),
+
+                // Save Prompt Modal elements
+                savePromptModal: document.getElementById('save-prompt-modal'),
+                saveSessionNameInput: document.getElementById('save-session-name-input'),
+                saveSessionConfirmBtn: document.getElementById('save-session-confirm-btn'),
+                saveSessionCancelBtn: document.getElementById('save-session-cancel-btn')
             };
 
-            function showView(viewName, toolKey = null) {
+            // Global variables to store callbacks for the generic modal
+            let currentModalConfirmCallback = null;
+            let currentModalCancelCallback = null;
+
+            // Custom response for creator questions
+            const creatorResponse = "I am a developing AI Hub, created by a single developer named **Mohamed Aslam**. I am powered by **Perplexity** and **Gemini**.";
+
+            function showView(viewName, toolKey = null, sessionId = null) {
                 // Hide all main views by default
                 DOMElements.dashboardView.style.display = 'none';
                 DOMElements.chatView.style.display = 'none';
@@ -1158,6 +1285,7 @@
                     DOMElements.mainAppContainer.style.display = 'block'; // Show main app container
                     DOMElements.dashboardView.style.display = 'block';
                     currentTool = null;
+                    currentDocumentSessionId = null; // Clear current session ID
                     renderHistoryList();
                 } else if (viewName === 'chat') { // This is for general chat tools
                     DOMElements.mainAppContainer.style.display = 'block'; // Show main app container
@@ -1177,12 +1305,24 @@
                     DOMElements.notebooklmDocFileInput.value = null;
                     DOMElements.notebooklmFileNameDisplay.textContent = "";
                     DOMElements.notebooklmMessageInput.placeholder = "Upload a source to get started";
+                    DOMElements.notebooklmMessageInput.disabled = false; // Ensure enabled
+                    DOMElements.notebooklmSendBtn.disabled = false; // Ensure enabled
                     DOMElements.notebooklmSourceCount.textContent = "0 sources";
-                    
-                    // Show initial upload UI, hide chat messages
-                    DOMElements.notebooklmUploadUI.style.display = 'flex';
-                    DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
                     DOMElements.notebooklmChatMessagesContainer.innerHTML = ''; // Clear previous messages
+                    DOMElements.notebooklmTitle.textContent = "Untitled notebook"; // Reset title
+
+                    if (sessionId) {
+                        // If a session ID is provided, load that session
+                        loadDocumentChatSession(sessionId);
+                        currentDocumentSessionId = sessionId;
+                    } else {
+                        // Otherwise, start a new blank session
+                        currentDocumentSessionId = null; // No session loaded yet
+                        DOMElements.notebooklmUploadUI.style.display = 'flex';
+                        DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
+                        // Add the welcome message for a new document chat session
+                        addMessageToUI(ToolConfig['document-chat'].welcomeMessage, "ai", `ai-${Date.now()}`, DOMElements.notebooklmChatMessagesContainer);
+                    }
                     
                     // Set default active tab to Chat and show only chat panel
                     setActiveNotebookLMTab('chat-panel');
@@ -1217,28 +1357,160 @@
                     localStorage.setItem(`chatHistory_${currentTool}`, JSON.stringify(chatHistory));
                 }
             }
+
+            // --- Document Chat Session Management ---
+            function getDocumentChatSessions() {
+                try {
+                    const sessions = JSON.parse(localStorage.getItem('documentChatSessions')) || [];
+                    return sessions;
+                } catch (e) {
+                    console.error("Error parsing documentChatSessions from localStorage:", e);
+                    return [];
+                }
+            }
+
+            function saveDocumentChatSession(sessionName) {
+                // Check if there's actual content or chat to save
+                if (!documentContext && DOMElements.notebooklmChatMessagesContainer.children.length <= 1) { // Only welcome message
+                    return false; // Nothing meaningful to save
+                }
+
+                const sessions = getDocumentChatSessions();
+                let sessionToSave = null;
+                
+                // Extract messages from the current UI
+                const currentChatMessages = Array.from(DOMElements.notebooklmChatMessagesContainer.children).map(msgWrapper => {
+                    const messageElement = msgWrapper.querySelector('.message');
+                    if (messageElement) {
+                        return {
+                            sender: messageElement.classList.contains('user') ? 'user' : 'ai',
+                            text: messageElement.querySelector('.message-content').innerHTML, // Save innerHTML to preserve formatting
+                            timestamp: Date.now() // Update timestamp on save
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+
+                if (currentDocumentSessionId) {
+                    // Update existing session
+                    sessionToSave = sessions.find(s => s.id === currentDocumentSessionId);
+                    if (sessionToSave) {
+                        sessionToSave.name = sessionName;
+                        sessionToSave.timestamp = Date.now();
+                    }
+                }
+
+                if (!sessionToSave) {
+                    // Create new session
+                    sessionToSave = {
+                        id: crypto.randomUUID(), // Generate a unique ID
+                        name: sessionName,
+                        timestamp: Date.now()
+                    };
+                    sessions.unshift(sessionToSave); // Add to the beginning
+                }
+
+                // Save the main session metadata list
+                localStorage.setItem('documentChatSessions', JSON.stringify(sessions));
+
+                // Save the actual content (document and chat) separately by ID
+                localStorage.setItem(`docContent_${sessionToSave.id}`, JSON.stringify({
+                    documentContext: documentContext,
+                    chatMessages: currentChatMessages
+                }));
+
+                currentDocumentSessionId = sessionToSave.id; // Set the current session ID
+                DOMElements.notebooklmTitle.textContent = sessionName; // Update notebook title
+                return true;
+            }
+
+            function loadDocumentChatSession(sessionId) {
+                const savedContent = localStorage.getItem(`docContent_${sessionId}`);
+                if (savedContent) {
+                    try {
+                        const { documentContext: loadedDocContext, chatMessages: loadedChatMessages } = JSON.parse(savedContent);
+                        documentContext = loadedDocContext;
+                        DOMElements.notebooklmChatMessagesContainer.innerHTML = ''; // Clear current messages
+                        loadedChatMessages.forEach(msg => addMessageToUI(msg.text, msg.sender, `doc-${msg.timestamp}`, DOMElements.notebooklmChatMessagesContainer));
+                        
+                        // Update UI based on loaded document
+                        DOMElements.notebooklmUploadUI.style.display = 'none'; // Hide upload UI
+                        DOMElements.notebooklmChatMessagesContainer.style.display = 'flex'; // Show chat messages
+                        DOMElements.notebooklmMessageInput.placeholder = "Ask a question about your document...";
+                        DOMElements.notebooklmSourceCount.textContent = documentContext ? "1 source" : "0 sources"; // Update source count based on loaded context
+                        
+                        // Update notebook title from session name
+                        const sessions = getDocumentChatSessions();
+                        const session = sessions.find(s => s.id === sessionId);
+                        if (session) {
+                            DOMElements.notebooklmTitle.textContent = session.name;
+                        }
+
+                        DOMElements.notebooklmChatMessagesContainer.scrollTop = DOMElements.notebooklmChatMessagesContainer.scrollHeight;
+                    } catch (e) {
+                        console.error("Error parsing saved document content:", e);
+                        // Fallback to initial state if parsing fails
+                        DOMElements.notebooklmUploadUI.style.display = 'flex';
+                        DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
+                        documentContext = "";
+                        DOMElements.notebooklmMessageInput.placeholder = "Upload a source to get started";
+                        DOMElements.notebooklmSourceCount.textContent = "0 sources";
+                        DOMElements.notebooklmTitle.textContent = "Untitled notebook";
+                        showCustomAlert("Error loading session. It might be corrupted. Please re-upload your document.");
+                    }
+                } else {
+                    // If content not found, go back to initial upload state
+                    DOMElements.notebooklmUploadUI.style.display = 'flex';
+                    DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
+                    documentContext = "";
+                    DOMElements.notebooklmMessageInput.placeholder = "Upload a source to get started";
+                    DOMElements.notebooklmSourceCount.textContent = "0 sources";
+                    DOMElements.notebooklmTitle.textContent = "Untitled notebook";
+                    showCustomAlert("Error loading session. Content not found. Please re-upload your document.");
+                }
+            }
+
             function renderHistoryList() {
                 DOMElements.historyList.innerHTML = '';
-                const historyItems = Object.keys(localStorage).filter(key => key.startsWith('chatHistory_')).map(key => {
+                const generalChatHistoryItems = Object.keys(localStorage).filter(key => key.startsWith('chatHistory_') && key !== 'chatHistory_document-chat').map(key => {
                     const toolKey = key.replace('chatHistory_', '');
                     const savedHistory = JSON.parse(localStorage.getItem(key));
                     const lastUserMessage = savedHistory.filter(m => m.sender === 'user').pop();
-                    return { toolKey, tool: ToolConfig[toolKey], lastUserMessage };
-                }).filter(item => item.tool && item.lastUserMessage).sort((a, b) => b.lastUserMessage.timestamp - a.lastUserMessage.timestamp);
-                DOMElements.noHistoryMessage.style.display = historyItems.length === 0 ? 'block' : 'none';
+                    return { type: 'general', toolKey, tool: ToolConfig[toolKey], lastUserMessage, timestamp: lastUserMessage ? lastUserMessage.timestamp : 0 };
+                }).filter(item => item.tool && item.lastUserMessage);
+
+                const documentChatSessions = getDocumentChatSessions().map(session => {
+                    return { type: 'document', id: session.id, name: session.name, timestamp: session.timestamp };
+                });
+
+                // Combine and sort all history items by timestamp
+                const allHistoryItems = [...generalChatHistoryItems, ...documentChatSessions].sort((a, b) => b.timestamp - a.timestamp);
+
+                DOMElements.noHistoryMessage.style.display = allHistoryItems.length === 0 ? 'block' : 'none';
                 const fragment = document.createDocumentFragment();
-                historyItems.forEach(({ toolKey, tool, lastUserMessage }) => {
+
+                allHistoryItems.forEach(item => {
                     const historyItem = document.createElement('div');
                     historyItem.className = 'history-item';
-                    historyItem.dataset.tool = toolKey;
-                    const snippet = lastUserMessage.text.replace(/<[^>]*>/g, ' ').trim().substring(0, 100) + '...';
-                    const date = new Date(lastUserMessage.timestamp).toLocaleString();
-                    historyItem.innerHTML = `<h4>${tool.title}</h4><p>${snippet}</p><div class="timestamp">${date}</div>`;
+                    
+                    if (item.type === 'general') {
+                        historyItem.dataset.tool = item.toolKey;
+                        const snippet = item.lastUserMessage.text.replace(/<[^>]*>/g, ' ').trim().substring(0, 100) + '...';
+                        const date = new Date(item.lastUserMessage.timestamp).toLocaleString();
+                        historyItem.innerHTML = `<h4>${item.tool.title}</h4><p>${snippet}</p><div class="timestamp">${date}</div>`;
+                    } else if (item.type === 'document') {
+                        historyItem.dataset.tool = 'document-chat'; // Indicate it's a document chat
+                        historyItem.dataset.sessionId = item.id; // Store session ID for loading
+                        const date = new Date(item.timestamp).toLocaleString();
+                        historyItem.innerHTML = `<h4>📄 ${item.name}</h4><p>Document Chat Session</p><div class="timestamp">${date}</div>`;
+                    }
                     fragment.appendChild(historyItem);
                 });
                 DOMElements.historyList.appendChild(fragment);
             }
+
             function formatMessage(text) {
+                // This function is used for both general and document chat messages
                 return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/```(.*?)/gs, `<pre><code>$1</code></pre>`).replace(/\*\*(.*?)\*\*/g, '<h3>$1</h3>').replace(/\*(.*?)\*/g, '<b>$1</b>').replace(/^\s*-\s*(.*$)/gm, '<li>$1</li>').replace(/\n/g, '<br>');
             }
             function addMessageToUI(text, sender, id, container) {
@@ -1292,6 +1564,19 @@
                 e.preventDefault();
                 const userMessage = DOMElements.messageInput.value.trim();
                 if (!userMessage || !currentTool) return;
+
+                // Check for creator question
+                const lowerCaseMessage = userMessage.toLowerCase();
+                if (lowerCaseMessage.includes("who created this") || lowerCaseMessage.includes("who made you") || lowerCaseMessage.includes("who is your developer")) {
+                    const userMsgId = `user-${Date.now()}`;
+                    addMessageToUI(userMessage, 'user', userMsgId, DOMElements.chatContainer);
+                    const aiMsgId = `ai-${Date.now()}`;
+                    addMessageToUI(creatorResponse, 'ai', aiMsgId, DOMElements.chatContainer);
+                    DOMElements.messageInput.value = '';
+                    DOMElements.messageInput.style.height = 'auto';
+                    return; // Stop further processing
+                }
+
                 const userMsgId = `user-${Date.now()}`;
                 addMessageToUI(userMessage, 'user', userMsgId, DOMElements.chatContainer);
                 chatHistory.push({ sender: 'user', text: userMessage, timestamp: Date.now(), id: userMsgId });
@@ -1365,8 +1650,21 @@
                 if (!userMessage) return;
 
                 if (!documentContext) {
-                    alert("Please upload a document first to start chatting."); // Use alert for simplicity here
+                    // Use a custom modal or message box instead of alert
+                    showCustomAlert("Please upload a document first to start chatting.");
                     return;
+                }
+
+                // Check for creator question
+                const lowerCaseMessage = userMessage.toLowerCase();
+                if (lowerCaseMessage.includes("who created this") || lowerCaseMessage.includes("who made you") || lowerCaseMessage.includes("who is your developer")) {
+                    const userMsgId = `user-notebooklm-${Date.now()}`;
+                    addMessageToUI(userMessage, 'user', userMsgId, DOMElements.notebooklmChatMessagesContainer);
+                    const aiMsgId = `ai-notebooklm-${Date.now()}`;
+                    addMessageToUI(creatorResponse, 'ai', aiMsgId, DOMElements.notebooklmChatMessagesContainer);
+                    DOMElements.notebooklmMessageInput.value = '';
+                    DOMElements.notebooklmMessageInput.style.height = 'auto';
+                    return; // Stop further processing
                 }
 
                 const userMsgId = `user-notebooklm-${Date.now()}`;
@@ -1421,8 +1719,6 @@
                             } catch (e) { console.error("Could not parse JSON chunk:", line, e); }
                         }
                     }
-                    // No chat history saving for document chat in this iteration, as it's more complex
-                    // to save document content with chat history.
                 } catch (error) {
                     removeTypingIndicator();
                     if (error.name !== 'AbortError') {
@@ -1458,6 +1754,73 @@
                 }
             }
 
+            // Custom Alert/Message Box (replacing window.alert)
+            function showCustomAlert(message) {
+                const alertModal = document.createElement('div');
+                alertModal.className = 'modal';
+                alertModal.style.display = 'flex'; // Show it
+                alertModal.innerHTML = `
+                    <div class="modal-content">
+                        <h3>Notification</h3>
+                        <p>${message}</p>
+                        <div class="modal-buttons">
+                            <button class="save-btn" id="alert-ok-btn">OK</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(alertModal);
+
+                document.getElementById('alert-ok-btn').onclick = () => {
+                    alertModal.remove();
+                };
+            }
+
+            // Function to show the generic modal (re-purposed save-prompt-modal)
+            function showGenericModal(title, message, showInput, confirmText, cancelText, confirmCallback, cancelCallback) {
+                DOMElements.savePromptModal.style.display = 'flex';
+                DOMElements.savePromptModal.querySelector('h3').textContent = title;
+                DOMElements.savePromptModal.querySelector('p').textContent = message;
+                DOMElements.saveSessionNameInput.style.display = showInput ? 'block' : 'none';
+                DOMElements.saveSessionConfirmBtn.textContent = confirmText;
+                DOMElements.saveSessionCancelBtn.textContent = cancelText;
+
+                if (!showInput) {
+                    DOMElements.saveSessionNameInput.value = ''; // Clear input if not used
+                }
+
+                currentModalConfirmCallback = confirmCallback;
+                currentModalCancelCallback = cancelCallback;
+            }
+
+            // Custom Confirmation Box (replacing window.confirm)
+            function showCustomConfirm(message, onConfirm, onCancel = null) {
+                const confirmModal = document.createElement('div');
+                confirmModal.className = 'modal';
+                confirmModal.style.display = 'flex'; // Show it
+                confirmModal.innerHTML = `
+                    <div class="modal-content">
+                        <h3>Confirmation</h3>
+                        <p>${message}</p>
+                        <div class="modal-buttons">
+                            <button class="save-btn" id="confirm-yes-btn">Yes</button>
+                            <button class="cancel-btn" id="confirm-no-btn">No</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(confirmModal);
+
+                document.getElementById('confirm-yes-btn').onclick = () => {
+                    confirmModal.remove();
+                    onConfirm();
+                };
+                document.getElementById('confirm-no-btn').onclick = () => {
+                    confirmModal.remove();
+                    if (onCancel) {
+                        onCancel();
+                    }
+                };
+            }
+
 
             // New function for NotebookLM specific event listeners
             function assignNotebookLMEvents() {
@@ -1469,11 +1832,13 @@
                 DOMElements.notebooklmMessageInput = document.getElementById('notebooklm-message-input');
                 DOMElements.notebooklmSendBtn = document.getElementById('notebooklm-send-btn');
                 DOMElements.notebooklmSourceCount = document.getElementById('notebooklm-source-count');
+                DOMElements.notebooklmChatPanel = document.querySelector('#notebooklm-container .chat-panel');
                 DOMElements.notebooklmChatMessagesContainer = document.getElementById('notebooklm-chat-messages');
                 DOMElements.notebooklmBackBtn = document.querySelector('#notebooklm-container .back-to-dashboard-notebooklm');
                 DOMElements.notebooklmSourcesPanel = document.querySelector('#notebooklm-container .sources-panel');
                 DOMElements.notebooklmStudioPanel = document.querySelector('#notebooklm-container .studio-panel');
                 DOMElements.notebooklmTabButtons = document.querySelectorAll('.panel-tabs .tab-button');
+                DOMElements.notebooklmTitle = document.getElementById('notebooklm-title');
 
 
                 if (DOMElements.notebooklmUploadSourceBtn) {
@@ -1493,6 +1858,7 @@
                         DOMElements.notebooklmSendBtn.disabled = true; // Disable send button
 
                         documentContext = ""; // Clear previous context
+                        DOMElements.notebooklmChatMessagesContainer.innerHTML = ''; // Clear chat messages for new document
 
                         try {
                             if (file.type === "text/plain") {
@@ -1557,6 +1923,7 @@
                             DOMElements.notebooklmUploadUI.style.display = 'flex';
                             DOMElements.notebooklmChatMessagesContainer.style.display = 'none';
                             console.error("File processing error:", error);
+                            showCustomAlert(`Failed to process file: ${error.message}`);
                         }
                     };
                 }
@@ -1579,11 +1946,47 @@
                     });
                 }
 
-                // Back button for NotebookLM UI
+                // Back button for NotebookLM UI - now shows save prompt
                 if (DOMElements.notebooklmBackBtn) {
-                    DOMElements.notebooklmBackBtn.addEventListener('click', () => {
-                        showView('dashboard');
-                    });
+                    DOMElements.notebooklmBackBtn.onclick = () => {
+                        showGenericModal(
+                            'Save Document Chat Session',
+                            'Give your document chat session a name:',
+                            true, // Show input
+                            'Save',
+                            'Cancel',
+                            // Confirm Callback for Save Session Modal
+                            (sessionName) => {
+                                if (sessionName) {
+                                    const saved = saveDocumentChatSession(sessionName);
+                                    if (saved) {
+                                        showView('dashboard');
+                                    } else {
+                                        showCustomAlert("Nothing to save. Please upload a document or chat first.");
+                                    }
+                                } else {
+                                    showCustomAlert("Please enter a name for your session.");
+                                }
+                            },
+                            // Cancel Callback for Save Session Modal (triggers second confirmation)
+                            () => {
+                                DOMElements.savePromptModal.style.display = 'none'; // Hide the save prompt modal temporarily
+                                showCustomConfirm(
+                                    'Your current document chat session will not be saved. Are you sure you want to exit?',
+                                    () => { // User confirmed to exit without saving
+                                        showView('dashboard');
+                                    },
+                                    () => { // User canceled the second confirmation, show the save prompt modal again
+                                        DOMElements.savePromptModal.style.display = 'flex';
+                                        DOMElements.saveSessionNameInput.focus(); // Re-focus on the input
+                                    }
+                                );
+                            }
+                        );
+                        // Pre-fill input after modal is shown
+                        DOMElements.saveSessionNameInput.value = DOMElements.notebooklmTitle.textContent === "Untitled notebook" ? "" : DOMElements.notebooklmTitle.textContent;
+                        DOMElements.saveSessionNameInput.focus();
+                    };
                 }
 
                 // Tab switching for NotebookLM UI
@@ -1608,28 +2011,40 @@
                 DOMElements.historyList.addEventListener('click', (e) => {
                     const item = e.target.closest('.history-item');
                     if (item) {
-                        // If it's a document chat history, might need to load NotebookLM UI
                         if (item.dataset.tool === 'document-chat') {
-                            showView('notebooklm-document-chat');
-                            // In a real app, you'd load the saved document and its chat history here.
-                            // For this example, we'll just show a message.
-                            setTimeout(() => {
-                                addMessageToUI("Please re-upload your document to continue this conversation, as document content is not saved in history.", "ai", `ai-${Date.now()}`, DOMElements.notebooklmChatMessagesContainer);
-                                DOMElements.notebooklmUploadUI.style.display = 'none'; // Hide upload UI
-                                DOMElements.notebooklmChatMessagesContainer.style.display = 'flex'; // Show chat messages
-                            }, 100);
+                            const sessionId = item.dataset.sessionId;
+                            showView('notebooklm-document-chat', null, sessionId); // Pass session ID to load
                         } else {
                             showView('chat', item.dataset.tool);
                         }
                     }
                 });
 
-                DOMElements.backToDashboardBtns.forEach(btn => btn.addEventListener('click', () => showView('dashboard')));
+                DOMElements.backToDashboardBtns.forEach(btn => btn.addEventListener('click', () => {
+                    if (currentTool === 'general-chat' || currentTool === 'diet-planner') {
+                        showGenericModal(
+                            'Exit Chat',
+                            'Your current chat progress is automatically saved. Are you sure you want to exit?',
+                            false, // Don't show input
+                            'Exit',
+                            'Cancel',
+                            () => { showView('dashboard'); },
+                            () => { /* Do nothing, stay on current chat */ }
+                        );
+                    } else if (currentTool === 'sentence-corrector') {
+                        showView('dashboard'); // No state to save for sentence corrector
+                    } else {
+                        // Fallback for unexpected cases or if currentTool is null
+                        showView('dashboard');
+                    }
+                }));
+
                 DOMElements.newChatBtn.addEventListener('click', () => {
-                    if (window.confirm('Are you sure you want to start a new chat? This will clear the current conversation.')) {
+                    // Use custom confirmation instead of window.confirm
+                    showCustomConfirm('Are you sure you want to start a new chat? This will clear the current conversation.', () => {
                         localStorage.removeItem(`chatHistory_${currentTool}`);
                         showView('chat', currentTool); // Re-show current chat type after clearing
-                    }
+                    });
                 });
                 
                 DOMElements.messageForm.addEventListener('submit', handleFormSubmit);
@@ -1646,6 +2061,27 @@
                     if (apiController) apiController.abort();
                 });
 
+                // Generic Modal Confirm/Cancel Buttons
+                DOMElements.saveSessionConfirmBtn.addEventListener('click', () => {
+                    DOMElements.savePromptModal.style.display = 'none'; // Hide modal first
+                    if (currentModalConfirmCallback) {
+                        currentModalConfirmCallback(DOMElements.saveSessionNameInput.value.trim());
+                    }
+                    // Reset callbacks
+                    currentModalConfirmCallback = null;
+                    currentModalCancelCallback = null;
+                });
+
+                DOMElements.saveSessionCancelBtn.addEventListener('click', () => {
+                    DOMElements.savePromptModal.style.display = 'none'; // Hide modal first
+                    if (currentModalCancelCallback) {
+                        currentModalCancelCallback();
+                    }
+                    // Reset callbacks
+                    currentModalConfirmCallback = null;
+                    currentModalCancelCallback = null;
+                });
+
                 // Initial assignment of NotebookLM events
                 assignNotebookLMEvents();
             }
@@ -1660,7 +2096,7 @@
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', () => {
                     const input = document.activeElement;
-                    if (input && (input.id === 'message-input' || input.id === 'notebooklm-message-input')) {
+                    if (input && (input.id === 'message-input' || input.id === 'notebooklm-message-input' || input.id === 'save-session-name-input')) {
                         setTimeout(() => {
                             input.style.height = 'auto';
                             input.style.height = `${input.scrollHeight}px`;
